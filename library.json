@@ -1,0 +1,9 @@
+{
+  "name": "sensor-hub-mpu6050-provider",
+  "build": {
+    "libArchive": false
+  },
+  "dependencies": {
+    "adafruit/Adafruit MPU6050": "^2.2.9"
+  }
+}
