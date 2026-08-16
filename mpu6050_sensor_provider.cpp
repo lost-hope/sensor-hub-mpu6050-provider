@@ -43,12 +43,14 @@ class MPU6050SensorUsermod : public Usermod {
     uint16_t checkIntervalMs = 250; // how often to read the sensor
     String namePrefix = "mpu6050";  // sensor names become "<prefix>_accel_x/y/z"
     uint8_t precision = 2;          // decimal places published for all three axes
+    uint8_t priority = 100;         // getValue() selection priority - lower wins among sensors of the same SensorType (see sensor_bus.h)
 
     static const char _name[];
     static const char _enabled[];
     static const char _checkInterval[];
     static const char _namePrefix[];
     static const char _precision[];
+    static const char _priority[];
 
     bool beginSensor() {
       return mpu.begin(0x68, &Wire) || mpu.begin(0x69, &Wire);
@@ -56,9 +58,9 @@ class MPU6050SensorUsermod : public Usermod {
 
     void registerSensors() {
       if (!hub || accelXHandle != SENSOR_HANDLE_INVALID) return; // already registered
-      accelXHandle = hub->registerSensor((namePrefix + "_accel_x").c_str(), SensorType::Acceleration, nullptr, nullptr, precision);
-      accelYHandle = hub->registerSensor((namePrefix + "_accel_y").c_str(), SensorType::Acceleration, nullptr, nullptr, precision);
-      accelZHandle = hub->registerSensor((namePrefix + "_accel_z").c_str(), SensorType::Acceleration, nullptr, nullptr, precision);
+      accelXHandle = hub->registerSensor((namePrefix + "_accel_x").c_str(), SensorType::Acceleration, nullptr, nullptr, precision, priority);
+      accelYHandle = hub->registerSensor((namePrefix + "_accel_y").c_str(), SensorType::Acceleration, nullptr, nullptr, precision, priority);
+      accelZHandle = hub->registerSensor((namePrefix + "_accel_z").c_str(), SensorType::Acceleration, nullptr, nullptr, precision, priority);
     }
 
     void setSensorsAvailable(bool available) {
@@ -125,6 +127,7 @@ class MPU6050SensorUsermod : public Usermod {
       top[FPSTR(_checkInterval)] = checkIntervalMs;
       top[FPSTR(_namePrefix)] = namePrefix;
       top[FPSTR(_precision)] = precision;
+      top[FPSTR(_priority)] = priority;
     }
 
     bool readFromConfig(JsonObject& root) override {
@@ -134,6 +137,7 @@ class MPU6050SensorUsermod : public Usermod {
       configComplete &= getJsonValue(top[FPSTR(_checkInterval)], checkIntervalMs);
       configComplete &= getJsonValue(top[FPSTR(_namePrefix)], namePrefix);
       configComplete &= getJsonValue(top[FPSTR(_precision)], precision);
+      configComplete &= getJsonValue(top[FPSTR(_priority)], priority);
       return configComplete;
     }
 
@@ -141,6 +145,7 @@ class MPU6050SensorUsermod : public Usermod {
       settingsScript.print(F("addInfo('MPU6050Sensor:checkInterval',1,'milliseconds between accelerometer reads');"));
       settingsScript.print(F("addInfo('MPU6050Sensor:namePrefix',1,'sensor names become &lt;prefix&gt;_accel_x/y/z - must be unique across all sensor providers');"));
       settingsScript.print(F("addInfo('MPU6050Sensor:precision',1,'decimal places published for all three axes');"));
+      settingsScript.print(F("addInfo('MPU6050Sensor:priority',1,'getValue() selection priority - lower wins if another provider also registers an Acceleration sensor');"));
     }
 };
 
@@ -149,6 +154,7 @@ const char MPU6050SensorUsermod::_enabled[]       PROGMEM = "enabled";
 const char MPU6050SensorUsermod::_checkInterval[] PROGMEM = "checkInterval";
 const char MPU6050SensorUsermod::_namePrefix[]    PROGMEM = "namePrefix";
 const char MPU6050SensorUsermod::_precision[]     PROGMEM = "precision";
+const char MPU6050SensorUsermod::_priority[]      PROGMEM = "priority";
 
 static MPU6050SensorUsermod mpu6050_sensor;
 REGISTER_USERMOD(mpu6050_sensor);
