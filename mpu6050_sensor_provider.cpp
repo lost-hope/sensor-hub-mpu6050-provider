@@ -23,6 +23,11 @@
  * usermod only needs to confirm the pins are set, then use the shared Wire
  * bus. It must NOT call Wire.begin() itself.
  */
+
+REGISTER_SENSOR_SLOT(_slotAccelX, "_accel_x", SensorTypes::Acceleration, 2, 100);
+REGISTER_SENSOR_SLOT(_slotAccelY, "_accel_y", SensorTypes::Acceleration, 2, 100);
+REGISTER_SENSOR_SLOT(_slotAccelZ, "_accel_z", SensorTypes::Acceleration, 2, 100);
+
 class MPU6050SensorUsermod : public Usermod {
   private:
     Adafruit_MPU6050 mpu;
@@ -58,9 +63,9 @@ class MPU6050SensorUsermod : public Usermod {
 
     void registerSensors() {
       if (!hub || accelXHandle != SENSOR_HANDLE_INVALID) return; // already registered
-      accelXHandle = hub->registerSensor((namePrefix + "_accel_x").c_str(), SensorType::Acceleration, nullptr, nullptr, precision, priority);
-      accelYHandle = hub->registerSensor((namePrefix + "_accel_y").c_str(), SensorType::Acceleration, nullptr, nullptr, precision, priority);
-      accelZHandle = hub->registerSensor((namePrefix + "_accel_z").c_str(), SensorType::Acceleration, nullptr, nullptr, precision, priority);
+      accelXHandle = hub->attachSensor(&_slotAccelX, namePrefix.c_str(), precision, priority);
+      accelYHandle = hub->attachSensor(&_slotAccelY, namePrefix.c_str(), precision, priority);
+      accelZHandle = hub->attachSensor(&_slotAccelZ, namePrefix.c_str(), precision, priority);
     }
 
     void setSensorsAvailable(bool available) {
